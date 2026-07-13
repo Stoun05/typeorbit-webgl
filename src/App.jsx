@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react'
-import { motion } from 'motion/react'
+import { useCallback, useRef, useState } from 'react'
+import { motion, useScroll, useTransform } from 'motion/react'
 import OrbitCanvas from './components/OrbitCanvas.jsx'
 
 const reveal = {
@@ -17,6 +17,12 @@ function ScrambleLink({ children, href }) {
 }
 
 export default function App() {
+  const heroRef = useRef(null)
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const orbitScale = useTransform(scrollYProgress, [0, 1], [1, 1.18])
+  const orbitRotate = useTransform(scrollYProgress, [0, 1], [0, 8])
+  const orbitY = useTransform(scrollYProgress, [0, 1], [0, 90])
+  const orbitOpacity = useTransform(scrollYProgress, [0, 0.78, 1], [1, 0.92, 0.35])
   const [coordinates, setCoordinates] = useState({ x: 0, y: 0 })
   const updateCoordinates = useCallback(({ x, y }) => {
     setCoordinates({ x: Math.round(x * 100), y: Math.round(y * 100) })
@@ -24,7 +30,7 @@ export default function App() {
 
   return (
     <main>
-      <section className="hero" id="home">
+      <section className="hero" id="home" ref={heroRef}>
         <div className="hero-copy">
           <motion.header
             className="nav"
@@ -92,14 +98,19 @@ export default function App() {
         </div>
 
         <div className="visual-panel" aria-label="Interaktiw döredijilik orbitasy">
-          <OrbitCanvas onPointerChange={updateCoordinates} />
-          <div className="visual-label top-label">
-            <span>JANLY SIGNAL</span><span>60 KADR/S</span>
-          </div>
-          <div className="visual-label bottom-label">
-            <span>WEBGL / OGL</span><span>GÖRKEZIJI IŞJEŇ</span>
-          </div>
-          <div className="crosshair" aria-hidden="true" />
+          <motion.div
+            className="visual-motion"
+            style={{ scale: orbitScale, rotate: orbitRotate, y: orbitY, opacity: orbitOpacity }}
+          >
+            <OrbitCanvas onPointerChange={updateCoordinates} />
+            <div className="visual-label top-label">
+              <span>JANLY SIGNAL</span><span>60 KADR/S</span>
+            </div>
+            <div className="visual-label bottom-label">
+              <span>WEBGL / OGL</span><span>GÖRKEZIJI IŞJEŇ</span>
+            </div>
+            <div className="crosshair" aria-hidden="true" />
+          </motion.div>
         </div>
       </section>
 
@@ -125,7 +136,10 @@ export default function App() {
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.45 }}
-              transition={{ delay: index * 0.12, duration: 0.65 }}
+              whileHover={{ y: -14, rotateX: 3, backgroundColor: 'rgba(240, 108, 31, 0.07)' }}
+              whileTap={{ scale: 0.985 }}
+              transition={{ delay: index * 0.12, duration: 0.65, y: { type: 'spring', stiffness: 280, damping: 22 } }}
+              style={{ transformPerspective: 900 }}
             >
               <span>{number}</span>
               <h3>{title}</h3>
