@@ -70,7 +70,7 @@ h1 em { color: var(--orange); font-family: Georgia, serif; font-weight: 400; }
 
 .visual-panel { min-height: 100svh; position: relative; background: #090909; color: #f4f0e8; cursor: crosshair; }
 .orbit-canvas, .orbit-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.orbit-canvas { opacity: 0; transition: opacity 1.1s ease; }
+.orbit-canvas { opacity: 0; transition: opacity 1.1s ease; touch-action: none; cursor: crosshair; }
 .orbit-canvas.is-webgl, .orbit-canvas.is-fallback { opacity: 1; }
 .orbit-canvas canvas { display: block; }
 .canvas-loader { position: absolute; inset: 0; display: grid; place-items: center; background: #090909; transition: opacity .5s; }
@@ -79,7 +79,9 @@ h1 em { color: var(--orange); font-family: Georgia, serif; font-weight: 400; }
 .canvas-loader span::after { content: ''; position: absolute; inset: 0; background: var(--orange); transform: translateX(-100%); animation: load 1s ease-in-out infinite; }
 @keyframes load { to { transform: translateX(100%); } }
 .orbit-fallback { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; opacity: 0; transition: opacity .7s ease; }
-.is-fallback .orbit-fallback { opacity: 1; }
+.is-fallback .orbit-fallback { opacity: 1; transform: scale(1); transition: opacity .7s ease, transform .65s cubic-bezier(.22, 1, .36, 1); }
+.is-fallback:active .orbit-fallback { transform: scale(1.07) rotate(2deg); }
+.is-fallback:active .orbit-fallback i { animation-duration: 2.2s; border-color: rgba(240, 108, 31, .72); }
 .orbit-fallback i { position: absolute; width: calc(18% + var(--ring, 0) * 4%); aspect-ratio: 1.9; border: 1px solid rgba(241, 238, 231, .34); border-radius: 50%; transform: rotate(calc(var(--ring, 0) * 6deg)); animation: fallback-orbit 8s ease-in-out infinite alternate; animation-delay: calc(var(--ring, 0) * -.23s); }
 .orbit-fallback i:nth-child(1) { --ring: 1; } .orbit-fallback i:nth-child(2) { --ring: 2; }
 .orbit-fallback i:nth-child(3) { --ring: 3; } .orbit-fallback i:nth-child(4) { --ring: 4; }
