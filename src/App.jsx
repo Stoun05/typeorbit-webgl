@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState } from 'react'
-import { motion, useScroll, useTransform } from 'motion/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from 'motion/react'
 import OrbitCanvas from './components/OrbitCanvas.jsx'
 
 const reveal = {
@@ -7,16 +7,68 @@ const reveal = {
   visible: { y: 0, opacity: 1 },
 }
 
-function ScrambleLink({ children, href }) {
+function MagneticLink({ children, href }) {
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const springX = useSpring(x, { stiffness: 260, damping: 20 })
+  const springY = useSpring(y, { stiffness: 260, damping: 20 })
+
+  const move = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    x.set((event.clientX - rect.left - rect.width / 2) * 0.24)
+    y.set((event.clientY - rect.top - rect.height / 2) * 0.32)
+  }
+
+  const reset = () => {
+    x.set(0)
+    y.set(0)
+  }
+
   return (
-    <motion.a href={href} whileHover={{ x: 4 }} transition={{ duration: 0.25 }}>
+    <motion.a
+      className="magnetic-link"
+      href={href}
+      style={{ x: springX, y: springY }}
+      onPointerMove={move}
+      onPointerLeave={reset}
+    >
       <span>{children}</span>
       <span aria-hidden="true">↗</span>
     </motion.a>
   )
 }
 
+function CustomCursor() {
+  const x = useMotionValue(-100)
+  const y = useMotionValue(-100)
+  const smoothX = useSpring(x, { stiffness: 620, damping: 38, mass: 0.35 })
+  const smoothY = useSpring(y, { stiffness: 620, damping: 38, mass: 0.35 })
+  const [active, setActive] = useState(false)
+
+  useEffect(() => {
+    const move = (event) => {
+      x.set(event.clientX)
+      y.set(event.clientY)
+      setActive(Boolean(event.target.closest('a, button, .visual-panel, .system-grid article')))
+    }
+    window.addEventListener('pointermove', move, { passive: true })
+    return () => window.removeEventListener('pointermove', move)
+  }, [x, y])
+
+  return (
+    <motion.div
+      className="custom-cursor"
+      aria-hidden="true"
+      style={{ x: smoothX, y: smoothY }}
+      animate={{ scale: active ? 1.9 : 1, opacity: active ? 0.72 : 1 }}
+      transition={{ duration: 0.2 }}
+    />
+  )
+}
+
 export default function App() {
+  const [loadProgress, setLoadProgress] = useState(0)
+  const [introVisible, setIntroVisible] = useState(true)
   const heroRef = useRef(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
   const orbitScale = useTransform(scrollYProgress, [0, 1], [1, 1.18])
@@ -28,8 +80,53 @@ export default function App() {
     setCoordinates({ x: Math.round(x * 100), y: Math.round(y * 100) })
   }, [])
 
+  useEffect(() => {
+    const quick = window.matchMedia('(pointer: coarse), (prefers-reduced-motion: reduce)').matches
+    const step = quick ? 20 : 4
+    const speed = quick ? 18 : 28
+    let value = 0
+    let hideTimer
+    document.body.style.overflow = 'hidden'
+    const timer = window.setInterval(() => {
+      value = Math.min(100, value + step)
+      setLoadProgress(value)
+      if (value === 100) {
+        window.clearInterval(timer)
+        hideTimer = window.setTimeout(() => {
+          setIntroVisible(false)
+          document.body.style.overflow = ''
+        }, quick ? 120 : 360)
+      }
+    }, speed)
+
+    return () => {
+      window.clearInterval(timer)
+      window.clearTimeout(hideTimer)
+      document.body.style.overflow = ''
+    }
+  }, [])
+
   return (
     <main>
+      <AnimatePresence>
+        {introVisible && (
+          <motion.div
+            className="intro-loader"
+            initial={{ opacity: 1 }}
+            exit={{ y: '-100%', transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] } }}
+          >
+            <div className="loader-brand">TYPE<span>/</span>ORBIT</div>
+            <div className="loader-orbit" aria-hidden="true"><i /><i /><i /></div>
+            <div className="loader-progress">
+              <span>ULGAM ÝÜKLENÝÄR</span>
+              <strong>{String(loadProgress).padStart(3, '0')}%</strong>
+            </div>
+            <div className="loader-track"><i style={{ transform: `scaleX(${loadProgress / 100})` }} /></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <CustomCursor />
+
       <section className="hero" id="home" ref={heroRef}>
         <div className="hero-copy">
           <motion.header
@@ -81,7 +178,7 @@ export default function App() {
                 Harplaryň, ýagtylygyň we hereketiň adamyň täsirine şol pursatda
                 jogap berýän janly wizual ulgamy.
               </p>
-              <ScrambleLink href="#system">Ulgamy öwren</ScrambleLink>
+              <MagneticLink href="#system">Ulgamy öwren</MagneticLink>
             </motion.div>
           </div>
 
