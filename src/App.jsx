@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react'
 import { motion } from 'motion/react'
 import OrbitCanvas from './components/OrbitCanvas.jsx'
 
@@ -16,6 +17,11 @@ function ScrambleLink({ children, href }) {
 }
 
 export default function App() {
+  const [coordinates, setCoordinates] = useState({ x: 0, y: 0 })
+  const updateCoordinates = useCallback(({ x, y }) => {
+    setCoordinates({ x: Math.round(x * 100), y: Math.round(y * 100) })
+  }, [])
+
   return (
     <main>
       <section className="hero" id="home">
@@ -80,13 +86,13 @@ export default function App() {
             transition={{ delay: 0.7 }}
           >
             <span>Syçanjygy hereketlendir</span>
-            <span className="coordinates">X 00.00 / Y 00.00</span>
+            <span className="coordinates">X {String(coordinates.x).padStart(2, '0')}.00 / Y {String(coordinates.y).padStart(2, '0')}.00</span>
             <a href="#system">Aşak geç ↓</a>
           </motion.div>
         </div>
 
         <div className="visual-panel" aria-label="Interaktiw döredijilik orbitasy">
-          <OrbitCanvas />
+          <OrbitCanvas onPointerChange={updateCoordinates} />
           <div className="visual-label top-label">
             <span>JANLY SIGNAL</span><span>60 KADR/S</span>
           </div>
