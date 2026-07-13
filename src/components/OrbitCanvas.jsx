@@ -98,10 +98,11 @@ export default function OrbitCanvas({ onPointerChange }) {
         const { Renderer, Program, Mesh, Triangle, Vec2 } = await import('ogl')
         if (cancelled || !mount.isConnected) return
 
+        const compactScreen = window.matchMedia('(max-width: 900px)').matches
         const renderer = new Renderer({
           alpha: false,
           antialias: false,
-          dpr: Math.min(window.devicePixelRatio, 2),
+          dpr: Math.min(window.devicePixelRatio, compactScreen ? 1.35 : 2),
         })
         const gl = renderer.gl
         if (!gl) throw new Error('WebGL is unavailable')
