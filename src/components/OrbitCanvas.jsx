@@ -80,7 +80,7 @@ const fragment = /* glsl */ `
   }
 `
 
-export default function OrbitCanvas() {
+export default function OrbitCanvas({ onPointerChange }) {
   const mountRef = useRef(null)
   const [mode, setMode] = useState('loading')
 
@@ -118,7 +118,7 @@ export default function OrbitCanvas() {
         const program = new Program(gl, { vertex, fragment, uniforms })
         const mesh = new Mesh(gl, { geometry, program })
 
-        const pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, energy: 0 }
+        const pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, energy: 0, pressed: false }
         let frame = 0
         let visible = true
         let lastX = 0.5
@@ -139,12 +139,36 @@ export default function OrbitCanvas() {
         pointer.energy = Math.min(1, pointer.energy + velocity * 5)
         lastX = pointer.tx
         lastY = pointer.ty
+        onPointerChange?.({ x: pointer.tx, y: 1 - pointer.ty })
+        }
+
+        const onPointerDown = (event) => {
+        pointer.pressed = true
+        pointer.energy = 1
+        mount.setPointerCapture?.(event.pointerId)
+        onPointer(event)
+        }
+
+        const onPointerUp = (event) => {
+        pointer.pressed = false
+        mount.releasePointerCapture?.(event.pointerId)
+        }
+
+        const onPointerLeave = () => {
+        pointer.pressed = false
+        pointer.tx = 0.5
+        pointer.ty = 0.5
+        lastX = 0.5
+        lastY = 0.5
+        onPointerChange?.({ x: 0, y: 0 })
         }
 
         const render = (time) => {
         pointer.x += (pointer.tx - pointer.x) * 0.055
         pointer.y += (pointer.ty - pointer.y) * 0.055
-        pointer.energy *= 0.945
+        pointer.energy = pointer.pressed
+          ? pointer.energy + (1 - pointer.energy) * 0.18
+          : pointer.energy * 0.925
         uniforms.uMouse.value.set(pointer.x, pointer.y)
         uniforms.uEnergy.value = pointer.energy
         uniforms.uTime.value = reduced ? 1.2 : time * 0.001
@@ -165,6 +189,10 @@ export default function OrbitCanvas() {
         observer.observe(mount)
         window.addEventListener('resize', resize)
         mount.addEventListener('pointermove', onPointer, { passive: true })
+        mount.addEventListener('pointerdown', onPointerDown)
+        mount.addEventListener('pointerup', onPointerUp)
+        mount.addEventListener('pointercancel', onPointerUp)
+        mount.addEventListener('pointerleave', onPointerLeave)
         setMode('webgl')
 
         cleanup = () => {
@@ -172,6 +200,10 @@ export default function OrbitCanvas() {
           observer.disconnect()
           window.removeEventListener('resize', resize)
           mount.removeEventListener('pointermove', onPointer)
+          mount.removeEventListener('pointerdown', onPointerDown)
+          mount.removeEventListener('pointerup', onPointerUp)
+          mount.removeEventListener('pointercancel', onPointerUp)
+          mount.removeEventListener('pointerleave', onPointerLeave)
           gl.canvas.remove()
         }
       } catch {
@@ -191,7 +223,7 @@ export default function OrbitCanvas() {
       if (timeoutId) window.clearTimeout(timeoutId)
       cleanup()
     }
-  }, [])
+  }, [onPointerChange])
 
   return (
     <div className={`orbit-canvas is-${mode}`} ref={mountRef}>
