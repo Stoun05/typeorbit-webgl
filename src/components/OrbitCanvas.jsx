@@ -225,8 +225,21 @@ export default function OrbitCanvas({ onPointerChange }) {
     }
   }, [onPointerChange])
 
+  const reportPointer = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    onPointerChange?.({
+      x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
+      y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)),
+    })
+  }
+
   return (
-    <div className={`orbit-canvas is-${mode}`} ref={mountRef}>
+    <div
+      className={`orbit-canvas is-${mode}`}
+      ref={mountRef}
+      onPointerMove={reportPointer}
+      onPointerLeave={() => onPointerChange?.({ x: 0, y: 0 })}
+    >
       <div className="orbit-fallback" aria-hidden="true">
         {Array.from({ length: 14 }, (_, index) => <i key={index} />)}
         <strong>TYPEORBIT · TYPEORBIT · TYPEORBIT ·</strong>
