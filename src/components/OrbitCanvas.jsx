@@ -82,7 +82,7 @@ const fragment = /* glsl */ `
 
 export default function OrbitCanvas() {
   const mountRef = useRef(null)
-  const [ready, setReady] = useState(false)
+  const [mode, setMode] = useState('loading')
 
   useEffect(() => {
     const mount = mountRef.current
@@ -94,42 +94,44 @@ export default function OrbitCanvas() {
     let cancelled = false
 
     const start = async () => {
-      const { Renderer, Program, Mesh, Triangle, Vec2 } = await import('ogl')
-      if (cancelled || !mount.isConnected) return
+      try {
+        const { Renderer, Program, Mesh, Triangle, Vec2 } = await import('ogl')
+        if (cancelled || !mount.isConnected) return
 
-      const renderer = new Renderer({
-        alpha: false,
-        antialias: false,
-        dpr: Math.min(window.devicePixelRatio, 2),
-      })
-      const gl = renderer.gl
-      gl.clearColor(0.035, 0.035, 0.035, 1)
-      mount.appendChild(gl.canvas)
+        const renderer = new Renderer({
+          alpha: false,
+          antialias: false,
+          dpr: Math.min(window.devicePixelRatio, 2),
+        })
+        const gl = renderer.gl
+        if (!gl) throw new Error('WebGL is unavailable')
+        gl.clearColor(0.035, 0.035, 0.035, 1)
+        mount.appendChild(gl.canvas)
 
-      const geometry = new Triangle(gl)
-      const uniforms = {
+        const geometry = new Triangle(gl)
+        const uniforms = {
         uTime: { value: 0 },
         uResolution: { value: new Vec2(1, 1) },
         uMouse: { value: new Vec2(0.5, 0.5) },
         uEnergy: { value: 0 },
-      }
-      const program = new Program(gl, { vertex, fragment, uniforms })
-      const mesh = new Mesh(gl, { geometry, program })
+        }
+        const program = new Program(gl, { vertex, fragment, uniforms })
+        const mesh = new Mesh(gl, { geometry, program })
 
-      const pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, energy: 0 }
-      let frame = 0
-      let visible = true
-      let lastX = 0.5
-      let lastY = 0.5
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        const pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, energy: 0 }
+        let frame = 0
+        let visible = true
+        let lastX = 0.5
+        let lastY = 0.5
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-      const resize = () => {
+        const resize = () => {
         const { width, height } = mount.getBoundingClientRect()
         renderer.setSize(width, height)
         uniforms.uResolution.value.set(gl.canvas.width, gl.canvas.height)
-      }
+        }
 
-      const onPointer = (event) => {
+        const onPointer = (event) => {
         const rect = mount.getBoundingClientRect()
         pointer.tx = (event.clientX - rect.left) / rect.width
         pointer.ty = 1 - (event.clientY - rect.top) / rect.height
@@ -137,9 +139,9 @@ export default function OrbitCanvas() {
         pointer.energy = Math.min(1, pointer.energy + velocity * 5)
         lastX = pointer.tx
         lastY = pointer.ty
-      }
+        }
 
-      const render = (time) => {
+        const render = (time) => {
         pointer.x += (pointer.tx - pointer.x) * 0.055
         pointer.y += (pointer.ty - pointer.y) * 0.055
         pointer.energy *= 0.945
@@ -148,29 +150,32 @@ export default function OrbitCanvas() {
         uniforms.uTime.value = reduced ? 1.2 : time * 0.001
         renderer.render({ scene: mesh })
         if (visible && !reduced) frame = requestAnimationFrame(render)
-      }
+        }
 
-      const observer = new IntersectionObserver(([entry]) => {
+        const observer = new IntersectionObserver(([entry]) => {
         const nextVisible = entry.isIntersecting
         if (nextVisible && !visible && !reduced) frame = requestAnimationFrame(render)
         visible = nextVisible
         if (!visible) cancelAnimationFrame(frame)
-      }, { threshold: 0.01 })
+        }, { threshold: 0.01 })
 
-      resize()
-      renderer.render({ scene: mesh })
-      if (!reduced) frame = requestAnimationFrame(render)
-      observer.observe(mount)
-      window.addEventListener('resize', resize)
-      mount.addEventListener('pointermove', onPointer, { passive: true })
-      setReady(true)
+        resize()
+        renderer.render({ scene: mesh })
+        if (!reduced) frame = requestAnimationFrame(render)
+        observer.observe(mount)
+        window.addEventListener('resize', resize)
+        mount.addEventListener('pointermove', onPointer, { passive: true })
+        setMode('webgl')
 
-      cleanup = () => {
-        cancelAnimationFrame(frame)
-        observer.disconnect()
-        window.removeEventListener('resize', resize)
-        mount.removeEventListener('pointermove', onPointer)
-        gl.canvas.remove()
+        cleanup = () => {
+          cancelAnimationFrame(frame)
+          observer.disconnect()
+          window.removeEventListener('resize', resize)
+          mount.removeEventListener('pointermove', onPointer)
+          gl.canvas.remove()
+        }
+      } catch {
+        if (!cancelled) setMode('fallback')
       }
     }
 
@@ -189,7 +194,11 @@ export default function OrbitCanvas() {
   }, [])
 
   return (
-    <div className={`orbit-canvas ${ready ? 'is-ready' : ''}`} ref={mountRef}>
+    <div className={`orbit-canvas is-${mode}`} ref={mountRef}>
+      <div className="orbit-fallback" aria-hidden="true">
+        {Array.from({ length: 14 }, (_, index) => <i key={index} />)}
+        <strong>TYPEORBIT · TYPEORBIT · TYPEORBIT ·</strong>
+      </div>
       <div className="canvas-loader"><span /></div>
     </div>
   )
