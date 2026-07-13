@@ -26,12 +26,12 @@ export default function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <a className="brand" href="#home" aria-label="TYPEORBIT home">
+            <a className="brand" href="#home" aria-label="TYPEORBIT baş sahypa">
               TYPE<span>/</span>ORBIT
             </a>
-            <nav aria-label="Primary navigation">
-              <a href="#system">System</a>
-              <a href="#about">About</a>
+            <nav aria-label="Esasy menýu">
+              <a href="#system">Ulgam</a>
+              <a href="#about">Biz barada</a>
             </nav>
             <span className="edition">EXP—001</span>
           </motion.header>
@@ -44,7 +44,7 @@ export default function App() {
               animate="visible"
               transition={{ delay: 0.12, duration: 0.7 }}
             >
-              Generative motion laboratory
+              Döredijilik hereketiniň laboratoriýasy
             </motion.p>
             <div className="title-wrap">
               <motion.h1
@@ -53,9 +53,9 @@ export default function App() {
                 animate="visible"
                 transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
               >
-                Motion with
+                Hereketiň täze
                 <br />
-                <em>an orbit.</em>
+                <em>orbitasy.</em>
               </motion.h1>
             </div>
             <motion.div
@@ -66,10 +66,10 @@ export default function App() {
               transition={{ delay: 0.38, duration: 0.8 }}
             >
               <p>
-                A real-time visual system where type, light and movement respond
-                to human input.
+                Harplaryň, ýagtylygyň we hereketiň adamyň täsirine şol pursatda
+                jogap berýän janly wizual ulgamy.
               </p>
-              <ScrambleLink href="#system">Enter the system</ScrambleLink>
+              <ScrambleLink href="#system">Ulgamy öwren</ScrambleLink>
             </motion.div>
           </div>
 
@@ -79,40 +79,40 @@ export default function App() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            <span>Move your cursor</span>
+            <span>Syçanjygy hereketlendir</span>
             <span className="coordinates">X 00.00 / Y 00.00</span>
-            <a href="#system">Scroll ↓</a>
+            <a href="#system">Aşak geç ↓</a>
           </motion.div>
         </div>
 
-        <div className="visual-panel" aria-label="Interactive generative orbit">
+        <div className="visual-panel" aria-label="Interaktiw döredijilik orbitasy">
           <OrbitCanvas />
           <div className="visual-label top-label">
-            <span>LIVE SIGNAL</span><span>60 FPS</span>
+            <span>JANLY SIGNAL</span><span>60 KADR/S</span>
           </div>
           <div className="visual-label bottom-label">
-            <span>WEBGL / OGL</span><span>POINTER ACTIVE</span>
+            <span>WEBGL / OGL</span><span>GÖRKEZIJI IŞJEŇ</span>
           </div>
           <div className="crosshair" aria-hidden="true" />
         </div>
       </section>
 
       <section className="system" id="system">
-        <div className="section-index">01 / SYSTEM</div>
+        <div className="section-index">01 / ULGAM</div>
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.8 }}
         >
-          Built to feel alive.
-          <br />Designed to stay light.
+          Janly duýulmak üçin döredildi.
+          <br />Ýeňil işlemek üçin taslandy.
         </motion.h2>
         <div className="system-grid">
           {[
-            ['001', 'Procedural', 'Every frame is drawn in real time. No video, no loop.'],
-            ['002', 'Responsive', 'Pointer velocity bends the field and shifts its energy.'],
-            ['003', 'Efficient', 'Rendering pauses outside the viewport and respects reduced motion.'],
+            ['001', 'Şol pursatda döredilýär', 'Her kadr şol pursatda täzeden çyzylýar. Wideo hem-de gaýtalanýan ýazgy ýok.'],
+            ['002', 'Täsire duýgur', 'Görkezijiniň tizligi meýdany egýär we onuň energiýasyny üýtgedýär.'],
+            ['003', 'Tygşytly', 'Animasiýa görünmeýän wagty saklanýar we az hereket sazlamasyna eýerýär.'],
           ].map(([number, title, text], index) => (
             <motion.article
               key={number}
@@ -130,9 +130,9 @@ export default function App() {
       </section>
 
       <section className="about" id="about">
-        <p>TYPEORBIT / EXPERIMENT 001</p>
-        <h2>Not decoration.<br />A living interface.</h2>
-        <a href="#home">Return to orbit ↑</a>
+        <p>TYPEORBIT / TEJRIBE 001</p>
+        <h2>Diňe bezeg däl.<br />Bu — janly interfeýs.</h2>
+        <a href="#home">Orbita dolan ↑</a>
       </section>
     </main>
   )
